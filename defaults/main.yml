@@ -1,0 +1,13 @@
+---
+postgresql_conf_listen_addresses: "*"
+postgresql_conf_password_encryption: scram-sha-256
+
+postgresql_conf_hba_local:
+  unix_socket: peer
+  ipv4: ident
+  ipv6: ident
+postgresql_conf_hba_custom: []
+
+postgresql_install_syspaths: true
+
+postgresql_rhel_rhscl_repo: rhel-server-rhscl-7-rpms

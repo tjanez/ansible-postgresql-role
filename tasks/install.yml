@@ -1,0 +1,29 @@
+---
+- name: Enable Red Hat Software Collections repository
+  block:
+  # NOTE: Using 'yum repolist' is an order of magnitude faster than using
+  # 'subscription-manager repos --list-enabled' (~3s vs. ~12s)
+  - name: Check which repositories are enabled
+    command: yum repolist
+    changed_when: false
+    register: postgresql_repos_res
+
+  - name: Enable Red Hat Software Collections repository
+    command: subscription-manager repos --enable {{ postgresql_rhel_rhscl_repo }}
+    # NOTE: Output of 'yum repolist' may start with '*' if the repository has
+    # metalink data and the latest metadata is not local or with '!' if the
+    # repository has metadata that is expired.
+    when: not postgresql_repos_res.stdout | search('\n(\*|!)?' + postgresql_rhel_rhscl_repo)
+
+  when: ansible_distribution == "RedHat"
+
+- name: Enable CentOS Software Collections SIG repository
+  package:
+    name: centos-release-scl
+    state: present
+  when: ansible_distribution == "CentOS"
+
+- name: Install PostgreSQL server
+  package:
+    name: "{{ postgresql_package_name }}"
+    state: present

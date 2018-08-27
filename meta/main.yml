@@ -1,0 +1,24 @@
+galaxy_info:
+  role_name: postgresql
+  author: Tadej Janež
+  description: Role to install and configure PostgreSQL database on RHEL/CentOS
+
+  license: GPLv3
+
+  min_ansible_version: 2.4
+
+  platforms:
+    - name: EL
+      versions:
+        - 7
+
+  galaxy_tags:
+    - system
+    - centos
+    - rhel
+    - database
+    - sql
+    - postgresql
+    - scl
+
+dependencies: []

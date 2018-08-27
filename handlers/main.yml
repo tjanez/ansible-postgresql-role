@@ -1,0 +1,15 @@
+---
+# NOTE: Ansible runs handlers in the order they are listed in this file and not
+# in the order they are notified.
+
+- name: Restart PostgreSQL
+  service:
+    name: "{{ postgresql_unit_name }}"
+    state: restarted
+
+- name: Analyze new PostgreSQL
+  command: >
+    {{ postgresql_scl_enable_command }} {{ postgresql_bin_dir }}/vacuumdb
+    --all --analyze-in-stages
+  become: true
+  become_user: postgres

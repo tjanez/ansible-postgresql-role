@@ -1,0 +1,10 @@
+---
+- name: Check if PostgreSQL is initialized
+  # NOTE: The find command will return an empty string if PostgreSQL's data
+  # directory is NOT empty.
+  command: find {{ postgresql_data_dir }} -maxdepth 0 -type d -empty
+  changed_when: false
+  register: postgresql_data_dir_empty_res
+
+- set_fact:
+    postgresql_initialized: "{{ postgresql_data_dir_empty_res.stdout == '' }}"

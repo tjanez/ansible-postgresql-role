@@ -1,0 +1,17 @@
+---
+- name: Initialize PostgreSQL
+  shell: "{{ postgresql_setup_command }} --initdb"
+  when: not postgresql_initialized
+  notify: Analyze new PostgreSQL
+
+- name: Configure postgresql.conf
+  template:
+    src: postgresql.conf.j2
+    dest: "{{ postgresql_data_dir }}/postgresql.conf"
+  notify: Restart PostgreSQL
+
+- name: Configure pg_hba.conf
+  template:
+    src: pg_hba.conf.j2
+    dest: "{{ postgresql_data_dir }}/pg_hba.conf"
+  notify: Restart PostgreSQL

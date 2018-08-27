@@ -1,0 +1,92 @@
+---
+# NOTE: Only the versions which the role supports upgrading from are checked.
+- name: Check which previous versions are installed
+  command: rpm -q {{ item }}
+  with_items: "{{ postgresql_upgrade_ids }}"
+  changed_when: false
+  failed_when: false
+  register: postgresql_upgrade_installed_versions_res
+
+- set_fact:
+    postgresql_upgrade_installed_versions: >
+      {{
+        postgresql_upgrade_installed_versions_res.results |
+        selectattr('rc', 'equalto', 0) | map(attribute='item') | list
+      }}
+
+- name: Check that at most one previous version is installed
+  fail:
+    msg: |
+      The role detected that more than one previous installation of PostgreSQL
+      Software Collection exists on the system:
+
+      {{ postgresql_upgrade_installed_versions | join(', ') }}
+
+      This is not supported by the role and you will have to manually remove
+      all except for one of the above installations to be able to upgrade from
+      the one that will remain.
+
+  when: postgresql_upgrade_installed_versions | length > 1
+
+# NOTE: The upgrade follows the recommendations given in the Red Hat Software
+# Collections 3.1 documentation:
+# https://access.redhat.com/documentation/en-us/red_hat_software_collections/3/html/3.1_release_notes/chap-migration#sect-Migration-PostgreSQL-9_6-10
+- name: Upgrade to {{ postgresql_scl_name }}
+  block:
+    - set_fact:
+        postgresql_upgrade_old_unit_name: "\
+          {{ postgresql_upgrade_installed_versions | first }}"
+        postgresql_upgrade_old_scl_name: "\
+          {{ postgresql_upgrade_installed_versions | first \
+             | regex_replace('(.*)-postgresql$', '\\1') }}"
+
+    # NOTE: This ensures the data is not in an inconsistent state.
+    - name: Stop the old PostgreSQL server
+      service:
+        name: "{{ postgresql_upgrade_old_unit_name }}"
+        state: stopped
+
+    - name: Upgrade the database data
+      command: >
+        {{ postgresql_setup_command }}
+          --upgrade
+          --upgrade-from={{ postgresql_upgrade_old_unit_name }}
+      notify: Analyze new PostgreSQL
+
+    - name: Display upgrade notice to the user
+      pause:
+        prompt: |
+
+          *****************************
+          ** DATABASE UPGRADE NOTICE **
+          *****************************
+
+          The PostgreSQL server was successfully upgraded from
+          {{ postgresql_upgrade_old_scl_name }} to {{ postgresql_scl_name }}.
+
+          Please, carefully review the upgrade log located at:
+          /var/lib/pgsql/upgrade_{{ postgresql_unit_name }}.log
+
+          NOTE: The analyze_new_cluster.sh script will be run automatically by
+          this role.
+
+          NOTE: After ensuring the new database works correctly, manually run
+          the delete_old_cluster.sh script located in /var/lib/pgsql and remove
+          all {{ postgresql_upgrade_old_scl_name }}* packages.
+
+          Please return to continue...
+
+    # NOTE: Only one set of syspaths packages can be installed at the same
+    # time.
+    - name: Remove the previous syspaths packages
+      package:
+        name: "{{ postgresql_upgrade_old_scl_name }}-{{ item }}"
+        state: absent
+      with_items:
+        - syspaths
+        - postgresql-syspaths
+        - postgresql-server-syspaths
+        - postgresql-contrib-syspaths
+      when: postgresql_install_syspaths
+
+  when: postgresql_upgrade_installed_versions | length == 1

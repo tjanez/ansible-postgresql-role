@@ -1,0 +1,32 @@
+---
+- name: Remove system-installed PostgreSQL packages
+  package:
+    name: postgresql
+    state: absent
+  register: postgresql_system_install_res
+
+- name: Display system-installed PostgreSQL packages removal notice
+  pause:
+    prompt: |
+
+      *****************************************
+      ** SYSTEM-INSTALLED POSTGRESQL REMOVAL **
+      *****************************************
+
+      The system-installed version of PostgreSQL server was removed from the
+      system so that the new {{ postgresql_package_name }}-syspaths package
+      could be installed.
+
+      If you had any data in the system-installed version of PostgreSQL, it
+      remains available in the /var/lib/pgsql/data directory.
+
+      NOTE: This role does not support upgrading the database from the
+      system-installed version of PostgreSQL.
+
+      Please return to continue...
+  when: postgresql_system_install_res is changed
+
+- name: Install PostgreSQL syspaths package
+  package:
+    name: "{{ postgresql_package_name }}-syspaths"
+    state: present

@@ -1,0 +1,6 @@
+# Ignore temporary files
+*.swp
+# Ignore editor settings
+/.vscode/
+# Ignore Ansible retry files
+/*.retry

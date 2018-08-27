@@ -1,0 +1,36 @@
+---
+postgresql_major_version: "10"
+
+postgresql_scl_name: rh-postgresql{{ postgresql_major_version }}
+postgresql_package_name: "{{ postgresql_scl_name }}"
+postgresql_unit_name: "{{ postgresql_scl_name }}-postgresql"
+
+postgresql_data_dir: /var/opt/rh/rh-postgresql{{ postgresql_major_version }}/lib/pgsql/data/
+postgresql_bin_dir: /opt/rh/rh-postgresql{{ postgresql_major_version }}/root/usr/bin/
+
+postgresql_setup_command: "{{ postgresql_bin_dir }}/postgresql-setup"
+postgresql_scl_enable_command: "scl enable {{ postgresql_scl_name }} --"
+
+postgresql_upgrade_ids:
+  - rh-postgresql94-postgresql
+  - rh-postgresql95-postgresql
+  - rh-postgresql96-postgresql
+
+# PRIVATE VARIABLES
+
+# List copied from https://www.postgresql.org/docs/10/static/auth-pg-hba-conf.html.
+_postgresql_conf_hba_auth_methods:
+  - trust
+  - reject
+  - scram-sha-256
+  - md5
+  - password
+  - gss
+  - sspi
+  - ident
+  - peer
+  - ldap
+  - radius
+  - cert
+  - pam
+  - bsd

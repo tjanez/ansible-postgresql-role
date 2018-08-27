@@ -1,0 +1,39 @@
+---
+- name: Check that the system is running a supported distribution and version
+  assert:
+    that:
+      - ansible_distribution in ["CentOS", "RedHat"]
+      - ansible_distribution_major_version | int == 7
+
+
+- name: Sanity check of role's variables
+  assert:
+    that:
+      - postgresql_conf_password_encryption in ["md5", "scram-sha-256"]
+
+- name: Sanity check of postgresql_conf_hba_local variable
+  assert:
+    that:
+      - conn_type in postgresql_conf_hba_local
+      - postgresql_conf_hba_local[conn_type] in _postgresql_conf_hba_auth_methods
+  with_items:
+    - unix_socket
+    - ipv4
+    - ipv6
+  loop_control:
+    loop_var: conn_type
+
+- name: Sanity check of postgresql_conf_hba_custom variable
+  assert:
+    that:
+      - "'description' in item"
+      - "'conn_type' in item"
+      - item.conn_type in ["local", "host", "hostssl", "hostnossl"]
+      - "'database' in item"
+      - "'user' in item"
+      - "'address' in item"
+      - "'method' in item"
+      - item.method in _postgresql_conf_hba_auth_methods
+  with_items: "{{ postgresql_conf_hba_custom }}"
+  when: postgresql_conf_hba_custom | length > 0
+

@@ -1,0 +1,28 @@
+---
+- import_tasks: sanity_checks.yml
+
+- import_tasks: install.yml
+
+- import_tasks: check_initialized.yml
+
+- include_tasks: upgrade.yml
+  when: not postgresql_initialized
+
+# Re-check if PostgreSQL has been initialized with an upgrade from a previous
+# version.
+- include_tasks: check_initialized.yml
+  when: not postgresql_initialized
+
+- include_tasks: install_syspaths.yml
+  when: postgresql_install_syspaths
+
+- import_tasks: configure.yml
+
+# Run pending handlers before enabling and starting PostgreSQL.
+- meta: flush_handlers
+
+- name: Enable and start PostgreSQL
+  systemd:
+    name: "{{ postgresql_unit_name }}"
+    state: started
+    enabled: yes
