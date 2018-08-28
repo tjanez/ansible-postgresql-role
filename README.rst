@@ -1,6 +1,8 @@
 PostgreSQL
 ==========
 
+|galaxy|
+
 Ansible role to install and configure the PostgreSQL database on RHEL/CentOS 7
 systems using the PostgreSQL `Red Hat/CentOS Software Collection`_.
 
@@ -14,6 +16,10 @@ systems using the PostgreSQL `Red Hat/CentOS Software Collection`_.
   ``postgresql_upgrade_ids`` list in ``vars/main.yml``.
 - Can install PostgreSQL Software Collection as the system-installed PostgreSQL
   using the `syspaths package`_.
+
+.. |galaxy| image:: https://img.shields.io/ansible/role/29179.svg
+    :target: https://galaxy.ansible.com/tjanez/postgresql/
+    :alt: tjanez.postgresql role
 
 .. _Red Hat/CentOS Software Collection:
   https://developers.redhat.com/products/softwarecollections/overview/
